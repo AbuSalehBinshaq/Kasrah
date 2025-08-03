@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import type { MatchWithTeams } from "@shared/schema";
 
 export function LiveMatches() {
@@ -59,9 +60,11 @@ export function LiveMatches() {
           <span className="w-3 h-3 bg-saudi-red rounded-full ml-2 live-pulse"></span>
           {t("liveMatches", { ar: "المباريات المباشرة", en: "Live Matches" })}
         </h2>
-        <Button variant="ghost" size="sm" className="text-saudi-red">
-          {t("viewAll", { ar: "عرض الكل", en: "View All" })}
-        </Button>
+        <Link href="/matches">
+          <Button variant="ghost" size="sm" className="text-saudi-red">
+            {t("viewAll", { ar: "عرض الكل", en: "View All" })}
+          </Button>
+        </Link>
       </div>
 
       {/* Live Matches */}

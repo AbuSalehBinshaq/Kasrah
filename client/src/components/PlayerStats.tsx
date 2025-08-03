@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import type { PlayerWithTeam } from "@shared/schema";
 
 export function PlayerStats() {
@@ -23,9 +24,11 @@ export function PlayerStats() {
         <h2 className="text-lg font-bold text-gray-900 font-tajawal">
           {t("weeklyStars", { ar: "نجوم الأسبوع", en: "Weekly Stars" })}
         </h2>
-        <Button variant="ghost" size="sm" className="text-saudi-red">
-          {t("viewAll", { ar: "عرض الكل", en: "View All" })}
-        </Button>
+        <Link href="/admin/players">
+          <Button variant="ghost" size="sm" className="text-saudi-red">
+            {t("viewAll", { ar: "عرض الكل", en: "View All" })}
+          </Button>
+        </Link>
       </div>
 
       {topPlayers.length > 0 ? (

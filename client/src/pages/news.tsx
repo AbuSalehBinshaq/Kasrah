@@ -85,7 +85,7 @@ export default function NewsPage() {
                 )}
               </Badge>
               <span className="text-gray-500 text-xs">
-                {formatTimeAgo(news.publishedAt)}
+                {formatTimeAgo(news.publishedAt!)}
               </span>
               {news.views && news.views > 0 && (
                 <span className="text-gray-400 text-xs">

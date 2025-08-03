@@ -94,7 +94,7 @@ export default function Transfers() {
                   )}
                 </Badge>
                 <span className="text-xs text-gray-500">
-                  {formatDate(transfer.announcedAt)}
+                  {formatDate(transfer.announcedAt!)}
                 </span>
               </div>
               

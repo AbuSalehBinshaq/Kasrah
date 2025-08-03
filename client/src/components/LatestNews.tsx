@@ -3,6 +3,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import type { News } from "@shared/schema";
 import { NEWS_CATEGORIES } from "@/lib/constants";
 
@@ -52,9 +53,11 @@ export function LatestNews() {
         <h2 className="text-lg font-bold text-gray-900 font-tajawal">
           {t("latestNews", { ar: "آخر الأخبار", en: "Latest News" })}
         </h2>
-        <Button variant="ghost" size="sm" className="text-saudi-red">
-          {t("viewAll", { ar: "عرض الكل", en: "View All" })}
-        </Button>
+        <Link href="/news">
+          <Button variant="ghost" size="sm" className="text-saudi-red">
+            {t("viewAll", { ar: "عرض الكل", en: "View All" })}
+          </Button>
+        </Link>
       </div>
 
       {/* Featured News */}
@@ -86,7 +89,7 @@ export function LatestNews() {
                 )}
               </Badge>
               <span className="text-gray-500 text-xs">
-                {formatTimeAgo(featuredNews.publishedAt)}
+                {formatTimeAgo(featuredNews.publishedAt!)}
               </span>
             </div>
             <h3 className="font-bold text-gray-900 mb-2 leading-tight">
@@ -136,7 +139,7 @@ export function LatestNews() {
                         )}
                       </Badge>
                       <span className="text-gray-400 text-xs">
-                        {formatTimeAgo(news.publishedAt)}
+                        {formatTimeAgo(news.publishedAt!)}
                       </span>
                     </div>
                     <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">

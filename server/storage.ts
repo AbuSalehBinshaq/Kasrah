@@ -140,74 +140,135 @@ export class DatabaseStorage implements IStorage {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    return await db
+    const matchesData = await db
       .select()
       .from(matches)
-      .innerJoin(teams, eq(matches.homeTeamId, teams.id))
-      .innerJoin(teams, eq(matches.awayTeamId, teams.id))
       .where(and(
         gte(matches.matchDate, today),
         lte(matches.matchDate, tomorrow)
       ))
-      .orderBy(matches.matchDate)
-      .then(this.formatMatchesWithTeams);
+      .orderBy(matches.matchDate);
+
+    const result: MatchWithTeams[] = [];
+    for (const match of matchesData) {
+      const homeTeam = await db.select().from(teams).where(eq(teams.id, match.homeTeamId)).then(t => t[0]);
+      const awayTeam = await db.select().from(teams).where(eq(teams.id, match.awayTeamId)).then(t => t[0]);
+      
+      if (homeTeam && awayTeam) {
+        result.push({
+          ...match,
+          homeTeam,
+          awayTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async getLiveMatches(): Promise<MatchWithTeams[]> {
-    return await db
+    const matchesData = await db
       .select()
       .from(matches)
-      .innerJoin(teams, eq(matches.homeTeamId, teams.id))
-      .innerJoin(teams, eq(matches.awayTeamId, teams.id))
       .where(eq(matches.status, 'live'))
-      .orderBy(matches.matchDate)
-      .then(this.formatMatchesWithTeams);
+      .orderBy(matches.matchDate);
+
+    const result: MatchWithTeams[] = [];
+    for (const match of matchesData) {
+      const homeTeam = await db.select().from(teams).where(eq(teams.id, match.homeTeamId)).then(t => t[0]);
+      const awayTeam = await db.select().from(teams).where(eq(teams.id, match.awayTeamId)).then(t => t[0]);
+      
+      if (homeTeam && awayTeam) {
+        result.push({
+          ...match,
+          homeTeam,
+          awayTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async getUpcomingMatches(limit = 10): Promise<MatchWithTeams[]> {
     const now = new Date();
     
-    return await db
+    const matchesData = await db
       .select()
       .from(matches)
-      .innerJoin(teams, eq(matches.homeTeamId, teams.id))
-      .innerJoin(teams, eq(matches.awayTeamId, teams.id))
       .where(and(
         gte(matches.matchDate, now),
         eq(matches.status, 'scheduled')
       ))
       .orderBy(matches.matchDate)
-      .limit(limit)
-      .then(this.formatMatchesWithTeams);
+      .limit(limit);
+
+    const result: MatchWithTeams[] = [];
+    for (const match of matchesData) {
+      const homeTeam = await db.select().from(teams).where(eq(teams.id, match.homeTeamId)).then(t => t[0]);
+      const awayTeam = await db.select().from(teams).where(eq(teams.id, match.awayTeamId)).then(t => t[0]);
+      
+      if (homeTeam && awayTeam) {
+        result.push({
+          ...match,
+          homeTeam,
+          awayTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async getRecentMatches(limit = 10): Promise<MatchWithTeams[]> {
     const now = new Date();
     
-    return await db
+    const matchesData = await db
       .select()
       .from(matches)
-      .innerJoin(teams, eq(matches.homeTeamId, teams.id))
-      .innerJoin(teams, eq(matches.awayTeamId, teams.id))
       .where(and(
         lte(matches.matchDate, now),
         eq(matches.status, 'completed')
       ))
       .orderBy(desc(matches.matchDate))
-      .limit(limit)
-      .then(this.formatMatchesWithTeams);
+      .limit(limit);
+
+    const result: MatchWithTeams[] = [];
+    for (const match of matchesData) {
+      const homeTeam = await db.select().from(teams).where(eq(teams.id, match.homeTeamId)).then(t => t[0]);
+      const awayTeam = await db.select().from(teams).where(eq(teams.id, match.awayTeamId)).then(t => t[0]);
+      
+      if (homeTeam && awayTeam) {
+        result.push({
+          ...match,
+          homeTeam,
+          awayTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async getMatch(id: string): Promise<MatchWithTeams | undefined> {
-    const [result] = await db
+    const matchData = await db
       .select()
       .from(matches)
-      .innerJoin(teams, eq(matches.homeTeamId, teams.id))
-      .innerJoin(teams, eq(matches.awayTeamId, teams.id))
       .where(eq(matches.id, id))
-      .then(this.formatMatchesWithTeams);
+      .then(m => m[0]);
+      
+    if (!matchData) return undefined;
     
-    return result || undefined;
+    const homeTeam = await db.select().from(teams).where(eq(teams.id, matchData.homeTeamId)).then(t => t[0]);
+    const awayTeam = await db.select().from(teams).where(eq(teams.id, matchData.awayTeamId)).then(t => t[0]);
+    
+    if (!homeTeam || !awayTeam) return undefined;
+    
+    return {
+      ...matchData,
+      homeTeam,
+      awayTeam
+    };
   }
 
   async createMatch(match: InsertMatch): Promise<Match> {
@@ -244,10 +305,21 @@ export class DatabaseStorage implements IStorage {
       
       const match = matchesMap.get(matchId)!;
       
-      if (result.teams.id === result.matches.homeTeamId) {
-        match.homeTeam = result.teams;
-      } else if (result.teams.id === result.matches.awayTeamId) {
-        match.awayTeam = result.teams;
+      // Handle case where we have separate homeTeam and awayTeam fields
+      if (result.homeTeam) {
+        match.homeTeam = result.homeTeam;
+      }
+      if (result.awayTeam) {
+        match.awayTeam = result.awayTeam;
+      }
+      
+      // Fallback to the old logic
+      if (result.teams) {
+        if (result.teams.id === result.matches.homeTeamId) {
+          match.homeTeam = result.teams;
+        } else if (result.teams.id === result.matches.awayTeamId) {
+          match.awayTeam = result.teams;
+        }
       }
     });
     
@@ -256,27 +328,55 @@ export class DatabaseStorage implements IStorage {
 
   // Transfers
   async getRecentTransfers(limit = 10): Promise<TransferWithDetails[]> {
-    return await db
+    const transfersData = await db
       .select()
       .from(transfers)
-      .innerJoin(players, eq(transfers.playerId, players.id))
-      .leftJoin(teams, eq(transfers.fromTeamId, teams.id))
-      .leftJoin(teams, eq(transfers.toTeamId, teams.id))
       .orderBy(desc(transfers.announcedAt))
-      .limit(limit)
-      .then(this.formatTransfersWithDetails);
+      .limit(limit);
+
+    const result: TransferWithDetails[] = [];
+    for (const transfer of transfersData) {
+      const player = await db.select().from(players).where(eq(players.id, transfer.playerId)).then(p => p[0]);
+      const fromTeam = transfer.fromTeamId ? await db.select().from(teams).where(eq(teams.id, transfer.fromTeamId)).then(t => t[0]) : undefined;
+      const toTeam = transfer.toTeamId ? await db.select().from(teams).where(eq(teams.id, transfer.toTeamId)).then(t => t[0]) : undefined;
+      
+      if (player) {
+        result.push({
+          ...transfer,
+          player,
+          fromTeam,
+          toTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async getTransfersByStatus(status: string): Promise<TransferWithDetails[]> {
-    return await db
+    const transfersData = await db
       .select()
       .from(transfers)
-      .innerJoin(players, eq(transfers.playerId, players.id))
-      .leftJoin(teams, eq(transfers.fromTeamId, teams.id))
-      .leftJoin(teams, eq(transfers.toTeamId, teams.id))
       .where(eq(transfers.status, status))
-      .orderBy(desc(transfers.announcedAt))
-      .then(this.formatTransfersWithDetails);
+      .orderBy(desc(transfers.announcedAt));
+
+    const result: TransferWithDetails[] = [];
+    for (const transfer of transfersData) {
+      const player = await db.select().from(players).where(eq(players.id, transfer.playerId)).then(p => p[0]);
+      const fromTeam = transfer.fromTeamId ? await db.select().from(teams).where(eq(teams.id, transfer.fromTeamId)).then(t => t[0]) : undefined;
+      const toTeam = transfer.toTeamId ? await db.select().from(teams).where(eq(teams.id, transfer.toTeamId)).then(t => t[0]) : undefined;
+      
+      if (player) {
+        result.push({
+          ...transfer,
+          player,
+          fromTeam,
+          toTeam
+        });
+      }
+    }
+    
+    return result;
   }
 
   async createTransfer(transfer: InsertTransfer): Promise<Transfer> {

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import type { TransferWithDetails } from "@shared/schema";
 import { TRANSFER_STATUS } from "@/lib/constants";
 
@@ -50,9 +51,11 @@ export function RecentTransfers() {
         <h2 className="text-lg font-bold text-gray-900 font-tajawal">
           {t("recentTransfers", { ar: "آخر الانتقالات", en: "Recent Transfers" })}
         </h2>
-        <Button variant="ghost" size="sm" className="text-saudi-red">
-          {t("viewAll", { ar: "عرض الكل", en: "View All" })}
-        </Button>
+        <Link href="/transfers">
+          <Button variant="ghost" size="sm" className="text-saudi-red">
+            {t("viewAll", { ar: "عرض الكل", en: "View All" })}
+          </Button>
+        </Link>
       </div>
 
       {transfers && transfers.length > 0 ? (
