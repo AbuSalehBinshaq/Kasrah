@@ -41,6 +41,7 @@ export interface IStorage {
   createTransfer(transfer: InsertTransfer): Promise<Transfer>;
 
   // News
+  getNews(id: string): Promise<News | undefined>;
   getBreakingNews(): Promise<News[]>;
   getLatestNews(limit?: number): Promise<News[]>;
   getFeaturedNews(): Promise<News | undefined>;
@@ -412,6 +413,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // News
+  async getNews(id: string): Promise<News | undefined> {
+    const [newsItem] = await db.select().from(news).where(eq(news.id, id));
+    return newsItem || undefined;
+  }
+
   async getBreakingNews(): Promise<News[]> {
     return await db
       .select()

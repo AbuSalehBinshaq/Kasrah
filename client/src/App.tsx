@@ -12,6 +12,10 @@ import Transfers from "@/pages/transfers";
 import NewsPage from "@/pages/news";
 import More from "@/pages/more";
 import AdminPanel from "@/pages/admin";
+import AdminNews from "@/pages/admin-news";
+import NewsDetail from "@/pages/news-detail";
+import PlayerDetail from "@/pages/player-detail";
+import UserGuide from "@/pages/user-guide";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +28,10 @@ function Router() {
         <Route path="/news" component={NewsPage} />
         <Route path="/more" component={More} />
         <Route path="/admin" component={AdminPanel} />
+        <Route path="/admin/news" component={AdminNews} />
+        <Route path="/news/:id" component={NewsDetail} />
+        <Route path="/player/:id" component={PlayerDetail} />
+        <Route path="/user-guide" component={UserGuide} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

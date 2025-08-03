@@ -111,8 +111,9 @@ export function LatestNews() {
             .filter((news) => news.id !== featuredNews?.id)
             .slice(0, 5)
             .map((news) => (
-              <Card key={news.id} className="shadow-sm">
-                <CardContent className="p-4 flex space-x-reverse space-x-4">
+              <Link key={news.id} href={`/news/${news.id}`}>
+                <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-4 flex space-x-reverse space-x-4">
                   <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-saudi-red to-saudi-red-dark">
                     {news.imageUrl ? (
                       <img
@@ -151,8 +152,9 @@ export function LatestNews() {
                       </p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
         </div>
       ) : (

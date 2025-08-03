@@ -27,13 +27,14 @@ export function BreakingNews() {
   const newsText = breakingNews.map(news => news.titleAr).join(" • ");
 
   return (
-    <div className="bg-gradient-to-r from-saudi-red to-saudi-red-light text-white py-2 overflow-hidden">
+    <div className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 dark:from-red-700 dark:via-red-600 dark:to-red-700 text-white py-3 overflow-hidden shadow-lg">
       <div className="flex items-center">
-        <div className="bg-white text-saudi-red px-3 py-1 rounded-r-full text-sm font-bold flex-shrink-0 mr-4">
-          {t("breaking", { ar: "عاجل", en: "Breaking" })}
+        <div className="bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 px-4 py-1.5 rounded-r-full text-sm font-bold flex-shrink-0 mr-4 shadow-md animate-pulse">
+          <i className="fas fa-bolt mr-1" />
+          {t("breaking", { ar: "🔴 عاجل", en: "🔴 Breaking" })}
         </div>
         <div className="whitespace-nowrap animate-scroll">
-          <span className="text-sm">{newsText}</span>
+          <span className="text-sm font-medium drop-shadow-sm">{newsText}</span>
         </div>
       </div>
     </div>

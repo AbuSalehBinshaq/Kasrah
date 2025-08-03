@@ -17,13 +17,19 @@ export default function More() {
       icon: "fas fa-cog",
       titleAr: "لوحة التحكم",
       titleEn: "Admin Panel",
-      action: () => window.location.href = "/admin"
+      href: "/admin"
     },
     {
       icon: "fas fa-star",
       titleAr: "المفضلة",
       titleEn: "Favorites",
       action: () => alert(t("comingSoon", { ar: "قريباً", en: "Coming Soon" }))
+    },
+    {
+      icon: "fas fa-book",
+      titleAr: "دليل المستخدم", 
+      titleEn: "User Guide",
+      href: "/user-guide"
     },
     {
       icon: "fas fa-download",
@@ -139,22 +145,43 @@ export default function More() {
           </h2>
 
           <div className="space-y-2">
-            {menuItems.map((item, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="w-full justify-start p-3 h-auto hover:bg-saudi-red-50 dark:hover:bg-saudi-red-900/20"
-                onClick={item.action}
-              >
-                <div className="flex items-center space-x-reverse space-x-3 w-full">
-                  <i className={`${item.icon} text-saudi-red`} />
-                  <span className="text-foreground dark:text-foreground text-right flex-1">
-                    {t(item.titleAr, { ar: item.titleAr, en: item.titleEn })}
-                  </span>
-                  <i className="fas fa-chevron-left text-muted-foreground dark:text-muted-foreground text-xs" />
-                </div>
-              </Button>
-            ))}
+            {menuItems.map((item, index) => {
+              if (item.href) {
+                return (
+                  <Link key={index} href={item.href}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-3 h-auto hover:bg-saudi-red-50 dark:hover:bg-saudi-red-900/20"
+                    >
+                      <div className="flex items-center space-x-reverse space-x-3 w-full">
+                        <i className={`${item.icon} text-saudi-red`} />
+                        <span className="text-foreground dark:text-foreground text-right flex-1">
+                          {t(item.titleAr, { ar: item.titleAr, en: item.titleEn })}
+                        </span>
+                        <i className="fas fa-chevron-left text-muted-foreground dark:text-muted-foreground text-xs" />
+                      </div>
+                    </Button>
+                  </Link>
+                );
+              }
+              
+              return (
+                <Button
+                  key={index}
+                  variant="ghost"
+                  className="w-full justify-start p-3 h-auto hover:bg-saudi-red-50 dark:hover:bg-saudi-red-900/20"
+                  onClick={item.action}
+                >
+                  <div className="flex items-center space-x-reverse space-x-3 w-full">
+                    <i className={`${item.icon} text-saudi-red`} />
+                    <span className="text-foreground dark:text-foreground text-right flex-1">
+                      {t(item.titleAr, { ar: item.titleAr, en: item.titleEn })}
+                    </span>
+                    <i className="fas fa-chevron-left text-muted-foreground dark:text-muted-foreground text-xs" />
+                  </div>
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

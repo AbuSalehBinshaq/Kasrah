@@ -36,14 +36,14 @@ export function PlayerStats() {
           <CardContent className="p-4">
             <div className="space-y-4">
               {topPlayers.map((player, index) => (
-                <div
-                  key={player.id}
-                  className={`flex items-center space-x-reverse space-x-4 p-3 rounded-xl ${
-                    index === 0
-                      ? "bg-gradient-to-r from-saudi-red-50 to-transparent border-2 border-saudi-red"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
+                <Link key={player.id} href={`/player/${player.id}`}>
+                  <div
+                    className={`flex items-center space-x-reverse space-x-4 p-3 rounded-xl cursor-pointer transition-colors ${
+                      index === 0
+                        ? "bg-gradient-to-r from-saudi-red-50 to-transparent border-2 border-saudi-red hover:from-saudi-red-100"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                    }`}
+                  >
                   <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-saudi-red to-saudi-red-dark">
                     {player.photoUrl ? (
                       <img
@@ -71,7 +71,8 @@ export function PlayerStats() {
                       {t("goals", { ar: "أهداف", en: "Goals" })}
                     </div>
                   </div>
-                </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </CardContent>

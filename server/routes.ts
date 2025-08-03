@@ -85,6 +85,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/news/:id", async (req, res) => {
+    try {
+      const newsItem = await storage.getNews(req.params.id);
+      if (!newsItem) {
+        return res.status(404).json({ message: "News not found" });
+      }
+      // Increment views
+      await storage.incrementNewsViews(req.params.id);
+      res.json(newsItem);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch news" });
+    }
+  });
+
   app.get("/api/teams/:id/players", async (req, res) => {
     try {
       const players = await storage.getPlayersByTeam(req.params.id);
