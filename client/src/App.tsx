@@ -12,7 +12,9 @@ import Transfers from "@/pages/transfers";
 import NewsPage from "@/pages/news";
 import More from "@/pages/more";
 import AdminPanel from "@/pages/admin";
+import AdminLogin from "@/pages/admin-login";
 import AdminNews from "@/pages/admin-news";
+import AdminFiles from "@/pages/admin-files";
 import NewsDetail from "@/pages/news-detail";
 import PlayerDetail from "@/pages/player-detail";
 import MatchDetail from "@/pages/match-detail";
@@ -28,8 +30,10 @@ function Router() {
         <Route path="/transfers" component={Transfers} />
         <Route path="/news" component={NewsPage} />
         <Route path="/more" component={More} />
+        <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin" component={AdminPanel} />
         <Route path="/admin/news" component={AdminNews} />
+        <Route path="/admin/files" component={AdminFiles} />
         <Route path="/news/:id" component={NewsDetail} />
         <Route path="/player/:id" component={PlayerDetail} />
         <Route path="/match/:id" component={MatchDetail} />

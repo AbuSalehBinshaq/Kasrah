@@ -1,17 +1,61 @@
 import { 
-  teams, players, matches, transfers, news, users,
-  type Team, type Player, type Match, type Transfer, type News, type User,
-  type InsertTeam, type InsertPlayer, type InsertMatch, type InsertTransfer, type InsertNews, type InsertUser,
+  teams, players, matches, transfers, news, users, userSessions, permissions, userPermissions, auditLogs, files, fileCategories, fileTags, fileTagRelations,
+  type Team, type Player, type Match, type Transfer, type News, type User, type UserSession, type Permission, type UserPermission, type AuditLog, type File, type FileCategory, type FileTag,
+  type InsertTeam, type InsertPlayer, type InsertMatch, type InsertTransfer, type InsertNews, type InsertUser, type InsertUserSession, type InsertPermission, type InsertUserPermission, type InsertAuditLog, type InsertFile,
   type MatchWithTeams, type TransferWithDetails, type PlayerWithTeam
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, or } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
+  // Users & Authentication
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, data: Partial<User>): Promise<User>;
+  updateUserLastLogin(id: string): Promise<void>;
+  deleteUser(id: string): Promise<void>;
+
+  // Sessions
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  getUserSession(token: string): Promise<UserSession | undefined>;
+  deleteUserSession(token: string): Promise<void>;
+  deleteExpiredSessions(): Promise<void>;
+
+  // Permissions
+  getPermissions(): Promise<Permission[]>;
+  getUserPermissions(userId: string): Promise<Permission[]>;
+  createPermission(permission: InsertPermission): Promise<Permission>;
+  assignPermissionToUser(userId: string, permissionId: string): Promise<void>;
+  removePermissionFromUser(userId: string, permissionId: string): Promise<void>;
+
+  // Audit Logs
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(limit?: number, offset?: number): Promise<AuditLog[]>;
+  getAuditLogsByUser(userId: string, limit?: number): Promise<AuditLog[]>;
+
+  // Files
+  createFile(file: InsertFile): Promise<File>;
+  getFile(id: string): Promise<File | undefined>;
+  getFiles(limit?: number, offset?: number): Promise<File[]>;
+  getFilesByUser(userId: string): Promise<File[]>;
+  updateFile(id: string, data: Partial<File>): Promise<File>;
+  deleteFile(id: string): Promise<void>;
+
+  // File Categories
+  createFileCategory(category: any): Promise<FileCategory>;
+  getFileCategories(): Promise<FileCategory[]>;
+  updateFileCategory(id: string, data: Partial<FileCategory>): Promise<FileCategory>;
+  deleteFileCategory(id: string): Promise<void>;
+
+  // File Tags
+  createFileTag(tag: any): Promise<FileTag>;
+  getFileTags(): Promise<FileTag[]>;
+  updateFileTag(id: string, data: Partial<FileTag>): Promise<FileTag>;
+  deleteFileTag(id: string): Promise<void>;
+  assignTagToFile(fileId: string, tagId: string): Promise<void>;
+  removeTagFromFile(fileId: string, tagId: string): Promise<void>;
 
   // Teams
   getTeams(): Promise<Team[]>;
@@ -51,7 +95,7 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // Users
+  // Users & Authentication
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -62,9 +106,187 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
+    return user;
+  }
+
+  async updateUserLastLogin(id: string): Promise<void> {
+    await db.update(users).set({ lastLogin: new Date() }).where(eq(users.id, id));
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  // Sessions
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const [newSession] = await db.insert(userSessions).values(session).returning();
+    return newSession;
+  }
+
+  async getUserSession(token: string): Promise<UserSession | undefined> {
+    const [session] = await db.select().from(userSessions).where(eq(userSessions.token, token));
+    return session || undefined;
+  }
+
+  async deleteUserSession(token: string): Promise<void> {
+    await db.delete(userSessions).where(eq(userSessions.token, token));
+  }
+
+  async deleteExpiredSessions(): Promise<void> {
+    await db.delete(userSessions).where(lte(userSessions.expiresAt, new Date()));
+  }
+
+  // Permissions
+  async getPermissions(): Promise<Permission[]> {
+    return await db.select().from(permissions).orderBy(permissions.name);
+  }
+
+  async getUserPermissions(userId: string): Promise<Permission[]> {
+    const results = await db
+      .select()
+      .from(userPermissions)
+      .leftJoin(permissions, eq(userPermissions.permissionId, permissions.id))
+      .where(eq(userPermissions.userId, userId));
+    
+    return results.map(result => result.permissions).filter(Boolean);
+  }
+
+  async createPermission(permission: InsertPermission): Promise<Permission> {
+    const [newPermission] = await db.insert(permissions).values(permission).returning();
+    return newPermission;
+  }
+
+  async assignPermissionToUser(userId: string, permissionId: string): Promise<void> {
+    await db.insert(userPermissions).values({ userId, permissionId });
+  }
+
+  async removePermissionFromUser(userId: string, permissionId: string): Promise<void> {
+    await db.delete(userPermissions).where(and(
+      eq(userPermissions.userId, userId),
+      eq(userPermissions.permissionId, permissionId)
+    ));
+  }
+
+  // Audit Logs
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [newLog] = await db.insert(auditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getAuditLogs(limit = 100, offset = 0): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getAuditLogsByUser(userId: string, limit = 50): Promise<AuditLog[]> {
+    return await db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.userId, userId))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
+  }
+
+  // Files
+  async createFile(file: InsertFile): Promise<File> {
+    const [newFile] = await db.insert(files).values(file).returning();
+    return newFile;
+  }
+
+  async getFile(id: string): Promise<File | undefined> {
+    const [file] = await db.select().from(files).where(eq(files.id, id));
+    return file || undefined;
+  }
+
+  async getFiles(limit = 50, offset = 0): Promise<File[]> {
+    return await db
+      .select()
+      .from(files)
+      .orderBy(desc(files.uploadedAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getFilesByUser(userId: string): Promise<File[]> {
+    return await db
+      .select()
+      .from(files)
+      .where(eq(files.uploadedBy, userId))
+      .orderBy(desc(files.uploadedAt));
+  }
+
+  async updateFile(id: string, data: Partial<File>): Promise<File> {
+    const [file] = await db.update(files).set(data).where(eq(files.id, id)).returning();
+    return file;
+  }
+
+  async deleteFile(id: string): Promise<void> {
+    await db.delete(files).where(eq(files.id, id));
+  }
+
+  // File Categories
+  async createFileCategory(category: any): Promise<FileCategory> {
+    const [newCategory] = await db.insert(fileCategories).values(category).returning();
+    return newCategory;
+  }
+
+  async getFileCategories(): Promise<FileCategory[]> {
+    return await db.select().from(fileCategories).orderBy(fileCategories.name);
+  }
+
+  async updateFileCategory(id: string, data: Partial<FileCategory>): Promise<FileCategory> {
+    const [category] = await db.update(fileCategories).set(data).where(eq(fileCategories.id, id)).returning();
+    return category;
+  }
+
+  async deleteFileCategory(id: string): Promise<void> {
+    await db.delete(fileCategories).where(eq(fileCategories.id, id));
+  }
+
+  // File Tags
+  async createFileTag(tag: any): Promise<FileTag> {
+    const [newTag] = await db.insert(fileTags).values(tag).returning();
+    return newTag;
+  }
+
+  async getFileTags(): Promise<FileTag[]> {
+    return await db.select().from(fileTags).orderBy(fileTags.name);
+  }
+
+  async updateFileTag(id: string, data: Partial<FileTag>): Promise<FileTag> {
+    const [tag] = await db.update(fileTags).set(data).where(eq(fileTags.id, id)).returning();
+    return tag;
+  }
+
+  async deleteFileTag(id: string): Promise<void> {
+    await db.delete(fileTags).where(eq(fileTags.id, id));
+  }
+
+  async assignTagToFile(fileId: string, tagId: string): Promise<void> {
+    await db.insert(fileTagRelations).values({ fileId, tagId });
+  }
+
+  async removeTagFromFile(fileId: string, tagId: string): Promise<void> {
+    await db.delete(fileTagRelations).where(and(
+      eq(fileTagRelations.fileId, fileId),
+      eq(fileTagRelations.tagId, tagId)
+    ));
   }
 
   // Teams

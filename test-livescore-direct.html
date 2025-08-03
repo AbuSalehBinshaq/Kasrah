@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار Live-score API للدوري السعودي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .test-button {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        .loading {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        .api-info {
+            background: #dbeafe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .api-key {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 اختبار Live-score API للدوري السعودي</h1>
+        
+        <div class="api-info">
+            <h3>🔑 معلومات API:</h3>
+            <p><strong>API Key:</strong> <span class="api-key">LG0YynJ1aEAj0IDD</span></p>
+            <p><strong>API Secret:</strong> <span class="api-key">oq3tbm8mQRvbOWiADiybGidQXNaXwOBV</span></p>
+            <p><strong>Base URL:</strong> <span class="api-key">https://live-score-api.com/api/v1</span></p>
+        </div>
+
+        <div class="test-section">
+            <h3>⚽ اختبار المباريات المباشرة</h3>
+            <button class="test-button" onclick="testLiveMatches()">اختبار المباريات المباشرة</button>
+            <div id="liveMatchesResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🏆 اختبار ترتيب الفرق</h3>
+            <button class="test-button" onclick="testStandings()">اختبار ترتيب الفرق</button>
+            <div id="standingsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚽ اختبار الهدافين</h3>
+            <button class="test-button" onclick="testTopScorers()">اختبار الهدافين</button>
+            <div id="topScorersResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 اختبار جميع المباريات</h3>
+            <button class="test-button" onclick="testAllMatches()">اختبار جميع المباريات</button>
+            <div id="allMatchesResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 اختبار الاتصال</h3>
+            <button class="test-button" onclick="testConnection()">اختبار الاتصال</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'LG0YynJ1aEAj0IDD';
+        const API_SECRET = 'oq3tbm8mQRvbOWiADiybGidQXNaXwOBV';
+        const BASE_URL = 'https://live-score-api.com/api/v1';
+
+        // إنشاء توقيع للطلب
+        async function createSignature(endpoint, timestamp) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(`${endpoint}${timestamp}`);
+            const key = encoder.encode(API_SECRET);
+            
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw',
+                key,
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['sign']
+            );
+            
+            const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+            return Array.from(new Uint8Array(signature))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // إرسال طلب إلى API
+        async function makeRequest(endpoint, params = {}) {
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const signature = await createSignature(endpoint, timestamp);
+                
+                const url = new URL(`${BASE_URL}${endpoint}`);
+                url.searchParams.append('key', API_KEY);
+                url.searchParams.append('t', timestamp);
+                url.searchParams.append('s', signature);
+                
+                // إضافة المعاملات الإضافية
+                Object.entries(params).forEach(([key, value]) => {
+                    url.searchParams.append(key, value);
+                });
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'User-Agent': 'KoraSaudi/1.0'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                throw new Error(`خطأ في الطلب: ${error.message}`);
+            }
+        }
+
+        // اختبار المباريات المباشرة
+        async function testLiveMatches() {
+            const resultDiv = document.getElementById('liveMatchesResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'جاري الاختبار...';
+
+            try {
+                const data = await makeRequest('/scores/live.json', {
+                    country: 'sa',
+                    league: 'saudi-pro-league'
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `خطأ: ${error.message}`;
+            }
+        }
+
+        // اختبار ترتيب الفرق
+        async function testStandings() {
+            const resultDiv = document.getElementById('standingsResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'جاري الاختبار...';
+
+            try {
+                const data = await makeRequest('/standings.json', {
+                    country: 'sa',
+                    league: 'saudi-pro-league'
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `خطأ: ${error.message}`;
+            }
+        }
+
+        // اختبار الهدافين
+        async function testTopScorers() {
+            const resultDiv = document.getElementById('topScorersResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'جاري الاختبار...';
+
+            try {
+                const data = await makeRequest('/topscorers.json', {
+                    country: 'sa',
+                    league: 'saudi-pro-league'
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `خطأ: ${error.message}`;
+            }
+        }
+
+        // اختبار جميع المباريات
+        async function testAllMatches() {
+            const resultDiv = document.getElementById('allMatchesResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'جاري الاختبار...';
+
+            try {
+                const data = await makeRequest('/scores.json', {
+                    country: 'sa',
+                    league: 'saudi-pro-league'
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `خطأ: ${error.message}`;
+            }
+        }
+
+        // اختبار الاتصال
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'جاري اختبار الاتصال...';
+
+            try {
+                const data = await makeRequest('/scores/live.json', {
+                    country: 'sa'
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ الاتصال ناجح!\n\nعدد المباريات المباشرة: ${data.data?.match?.length || 0}\n\nالبيانات الكاملة:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ فشل الاتصال:\n\n${error.message}\n\nملاحظة: قد يكون هناك مشكلة في:\n1. مفاتيح API\n2. اتصال الإنترنت\n3. خادم Live-score API`;
+            }
+        }
+    </script>
+</body>
+</html> 

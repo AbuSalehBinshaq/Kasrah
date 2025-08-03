@@ -2,6 +2,7 @@ import { LiveMatches } from "@/components/LiveMatches";
 import { RecentTransfers } from "@/components/RecentTransfers";
 import { LatestNews } from "@/components/LatestNews";
 import { PlayerStats } from "@/components/PlayerStats";
+import { AdvancedStats } from "@/components/AdvancedStats";
 import { BannerAd, InlineAd } from "@/components/AdSpaces";
 
 export default function Home() {
@@ -11,6 +12,8 @@ export default function Home() {
       <LiveMatches />
       <InlineAd />
       <RecentTransfers />
+      <InlineAd />
+      <AdvancedStats />
       <InlineAd />
       <LatestNews />
       <PlayerStats />

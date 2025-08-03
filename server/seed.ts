@@ -1,8 +1,121 @@
 import { db } from "./db";
-import { teams, players, matches, transfers, news } from "@shared/schema";
+import { teams, players, matches, transfers, news, users, permissions } from "@shared/schema";
+import bcrypt from "bcryptjs";
 
 async function seed() {
   console.log("🌱 Seeding database...");
+
+  // Create admin user
+  const hashedPassword = await bcrypt.hash("admin123", 12);
+  const adminUser = {
+    username: "admin",
+    email: "admin@kasra.com",
+    password: hashedPassword,
+    firstName: "مدير",
+    lastName: "النظام",
+    role: "admin",
+    isActive: true,
+  };
+
+  const [insertedAdmin] = await db.insert(users).values(adminUser).returning();
+  console.log(`✅ Created admin user: ${insertedAdmin.username}`);
+
+  // Create basic permissions
+  const basicPermissions = [
+    {
+      name: "news.create",
+      description: "Create news articles",
+      resource: "news",
+      action: "create"
+    },
+    {
+      name: "news.read",
+      description: "Read news articles",
+      resource: "news",
+      action: "read"
+    },
+    {
+      name: "news.update",
+      description: "Update news articles",
+      resource: "news",
+      action: "update"
+    },
+    {
+      name: "news.delete",
+      description: "Delete news articles",
+      resource: "news",
+      action: "delete"
+    },
+    {
+      name: "matches.create",
+      description: "Create matches",
+      resource: "matches",
+      action: "create"
+    },
+    {
+      name: "matches.read",
+      description: "Read matches",
+      resource: "matches",
+      action: "read"
+    },
+    {
+      name: "matches.update",
+      description: "Update matches",
+      resource: "matches",
+      action: "update"
+    },
+    {
+      name: "matches.delete",
+      description: "Delete matches",
+      resource: "matches",
+      action: "delete"
+    },
+    {
+      name: "transfers.create",
+      description: "Create transfers",
+      resource: "transfers",
+      action: "create"
+    },
+    {
+      name: "transfers.read",
+      description: "Read transfers",
+      resource: "transfers",
+      action: "read"
+    },
+    {
+      name: "transfers.update",
+      description: "Update transfers",
+      resource: "transfers",
+      action: "update"
+    },
+    {
+      name: "transfers.delete",
+      description: "Delete transfers",
+      resource: "transfers",
+      action: "delete"
+    },
+    {
+      name: "files.upload",
+      description: "Upload files",
+      resource: "files",
+      action: "upload"
+    },
+    {
+      name: "files.read",
+      description: "Read files",
+      resource: "files",
+      action: "read"
+    },
+    {
+      name: "files.delete",
+      description: "Delete files",
+      resource: "files",
+      action: "delete"
+    }
+  ];
+
+  const insertedPermissions = await db.insert(permissions).values(basicPermissions).returning();
+  console.log(`✅ Created ${insertedPermissions.length} permissions`);
 
   // Add teams
   const saudiTeams = [
@@ -215,6 +328,10 @@ async function seed() {
   console.log(`✅ Inserted ${insertedNews.length} news articles`);
 
   console.log("🎉 Database seeded successfully!");
+  console.log("📝 Admin credentials:");
+  console.log("   Username: admin");
+  console.log("   Password: admin123");
+  console.log("   Email: admin@kasra.com");
 }
 
 seed().catch(console.error);
