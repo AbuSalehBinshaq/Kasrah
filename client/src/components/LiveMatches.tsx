@@ -37,8 +37,9 @@ export function LiveMatches() {
     };
   }, [subscribe, refetchLive, refetchToday]);
 
-  const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString("ar-SA", {
+  const formatTime = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleTimeString("ar-SA", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -71,8 +72,9 @@ export function LiveMatches() {
       {liveMatches && liveMatches.length > 0 && (
         <div className="space-y-4 mb-4">
           {liveMatches.map((match) => (
-            <Card key={match.id} className="shadow-lg border border-gray-100">
-              <CardContent className="p-4">
+            <Link key={match.id} href={`/match/${match.id}`}>
+              <Card className="shadow-lg border border-gray-100 cursor-pointer hover:shadow-xl transition-shadow">
+                <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <Badge variant="destructive" className="bg-red-100 text-red-600">
                     {t("live", { ar: "مباشر", en: "Live" })}
@@ -124,8 +126,9 @@ export function LiveMatches() {
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
@@ -143,10 +146,8 @@ export function LiveMatches() {
                 .filter((match) => match.status !== "live")
                 .slice(0, 3)
                 .map((match) => (
-                  <div
-                    key={match.id}
-                    className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0"
-                  >
+                  <Link key={match.id} href={`/match/${match.id}`}>
+                    <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg px-2 transition-colors">
                     <div className="flex items-center space-x-reverse space-x-3">
                       <div className="text-center">
                         <div className="w-8 h-8 bg-gradient-to-br from-saudi-red to-saudi-red-dark rounded-full flex items-center justify-center text-white text-xs font-bold">
@@ -185,7 +186,8 @@ export function LiveMatches() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </div>
+                  </Link>
                 ))}
             </div>
           </CardContent>

@@ -62,46 +62,51 @@ export function LatestNews() {
 
       {/* Featured News */}
       {featuredNews && (
-        <Card className="shadow-lg overflow-hidden mb-4">
-          <div className="h-48 overflow-hidden bg-gradient-to-br from-saudi-red to-saudi-red-dark">
-            {featuredNews.imageUrl ? (
-              <img
-                src={featuredNews.imageUrl}
-                alt={featuredNews.titleAr}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white">
-                <i className="fas fa-newspaper text-4xl opacity-50" />
-              </div>
-            )}
-          </div>
-
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-reverse space-x-2 mb-2">
-              <Badge className={getCategoryBadge(featuredNews.category)}>
-                {t(
-                  featuredNews.category,
-                  NEWS_CATEGORIES[featuredNews.category as keyof typeof NEWS_CATEGORIES] || {
-                    ar: featuredNews.category,
-                    en: featuredNews.category,
-                  }
-                )}
-              </Badge>
-              <span className="text-gray-500 text-xs">
-                {formatTimeAgo(featuredNews.publishedAt!)}
-              </span>
+        <Link href={`/news/${featuredNews.id}`}>
+          <Card className="shadow-lg overflow-hidden mb-4 cursor-pointer hover:shadow-xl transition-shadow">
+            <div className="h-48 overflow-hidden bg-gradient-to-br from-saudi-red to-saudi-red-dark">
+              {featuredNews.imageUrl ? (
+                <img
+                  src={featuredNews.imageUrl}
+                  alt={featuredNews.titleAr}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200' viewBox='0 0 400 200'%3E%3Crect width='400' height='200' fill='%23C8102E'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial, sans-serif' font-size='24' fill='white'%3E%D8%A7%D9%84%D8%AE%D8%A8%D8%B1 %D8%A7%D9%84%D9%85%D9%85%D9%8A%D8%B2%3C/text%3E%3C/svg%3E";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white">
+                  <i className="fas fa-newspaper text-4xl opacity-50" />
+                </div>
+              )}
             </div>
-            <h3 className="font-bold text-gray-900 mb-2 leading-tight">
-              {featuredNews.titleAr}
-            </h3>
-            {featuredNews.summary && (
-              <p className="text-gray-600 text-sm leading-relaxed">
-                {featuredNews.summary}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-reverse space-x-2 mb-2">
+                <Badge className={getCategoryBadge(featuredNews.category)}>
+                  {t(
+                    featuredNews.category,
+                    NEWS_CATEGORIES[featuredNews.category as keyof typeof NEWS_CATEGORIES] || {
+                      ar: featuredNews.category,
+                      en: featuredNews.category,
+                    }
+                  )}
+                </Badge>
+                <span className="text-gray-500 text-xs">
+                  {formatTimeAgo(featuredNews.publishedAt || new Date().toISOString())}
+                </span>
+              </div>
+              <h3 className="font-bold text-gray-900 mb-2 leading-tight">
+                {featuredNews.titleAr}
+              </h3>
+              {featuredNews.summary && (
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {featuredNews.summary}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
       )}
 
       {/* News Grid */}
@@ -120,6 +125,9 @@ export function LatestNews() {
                         src={news.imageUrl}
                         alt={news.titleAr}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23C8102E'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial, sans-serif' font-size='12' fill='white'%3E%D8%A7%D9%84%D8%AE%D8%A8%D8%B1%3C/text%3E%3C/svg%3E";
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-white">
@@ -140,7 +148,7 @@ export function LatestNews() {
                         )}
                       </Badge>
                       <span className="text-gray-400 text-xs">
-                        {formatTimeAgo(news.publishedAt!)}
+                        {formatTimeAgo(news.publishedAt || new Date().toISOString())}
                       </span>
                     </div>
                     <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-1">

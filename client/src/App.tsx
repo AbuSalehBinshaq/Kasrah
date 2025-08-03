@@ -15,6 +15,7 @@ import AdminPanel from "@/pages/admin";
 import AdminNews from "@/pages/admin-news";
 import NewsDetail from "@/pages/news-detail";
 import PlayerDetail from "@/pages/player-detail";
+import MatchDetail from "@/pages/match-detail";
 import UserGuide from "@/pages/user-guide";
 import NotFound from "@/pages/not-found";
 
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/admin/news" component={AdminNews} />
         <Route path="/news/:id" component={NewsDetail} />
         <Route path="/player/:id" component={PlayerDetail} />
+        <Route path="/match/:id" component={MatchDetail} />
         <Route path="/user-guide" component={UserGuide} />
         <Route component={NotFound} />
       </Switch>
